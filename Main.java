@@ -7,7 +7,6 @@ import java.lang.Math;
 class Main {
 
   static ArrayList<Character> alreadyGuessed = new ArrayList<Character>();
-  static ArrayList<String> lettersList = new ArrayList<String>();
   static ArrayList<Character> dynamic = new ArrayList<Character>();
 
   static String[] words;
@@ -23,71 +22,43 @@ class Main {
   static int currentIndex = 0;
   static char currentLetter;
 
+  static boolean setDynamic = false;
+
   public static void main(String[] args) throws IOException {
     System.out.println("Welcome to Hangman!");
     readListWords();
     pickWord();
-    convertCharArray();
-    dynamic();
-    System.out.println(word);
     play();
-    // askUser();
   }
-static int b = 0;
+  
   public static void fill(){
-    b++;
-    System.out.println(b);
     for(int j = 0; j<chars.length; j++){
       for(int i = 0; i<yesChars.length; i++){
         if(yesChars[i] == chars[j]){
           dynamic.set(j, yesChars[i]);
-
-          // System.out.println(i + ", " + j + ", " + currentLetter);
         }
       }
       j++;
     }
   }
 
-  public static void dynamic(){
-    for(String a: lettersList){
-      dynamic.add('_');
+  public static boolean checkWin(){
+    for(char c: dynamic){
+      if(c == '-'){
+        return false;
+      }
     }
+    return true;
   }
 
-  public static void play() {
-
+  public static void printStuff(){
     clearScreen();
     System.out.println();
-
-    // for(String a: lettersList){
-    //   System.out.print(a + ",");
-    // }
-    // for(char a: chars){
-    //   System.out.print(a);
-    // }
-
-    if(!placeholder.equals("")){
-      System.out.println("\n" + placeholder + "\n");
+    for(char c: dynamic){
+      System.out.print(c + " ");
     }
-    
-    System.out.print("\t");
-    // System.out.println(alreadyGuessed);
-    
-    // for (int i = 0; i < word.length(); i++) {
-    //   System.out.print("___ ");
-    // }
 
-    for(char s: dynamic){
-      System.out.print(s);
-    }
-    // System.out.println();
-    // for(char c: chars){
-    //   System.out.print(c);
-    // }
-
-    System.out.println("\n" + word);
-
+    System.out.println("\n");
     System.out.print("❌:");
     for(char c: alreadyGuessed){
       System.out.print(" " + c);
@@ -98,83 +69,88 @@ static int b = 0;
     for(int i = 0; i< lives; i++){
       System.out.print(" ❤️ ");
     }
-    System.out.print("\n\n");
-    askUser();
-    System.out.println(currentLetter); //user input
-    fill();
+    System.out.println("\n");
+  }
+
+  public static void play() {
+
+    clearScreen();
+    System.out.println(word + "\n");
+
+    if(!setDynamic){
+      for(char c: chars){
+        dynamic.add('-');
+      }
+      setDynamic = true;
+    }
     
+    //print the gaps -- dynamic
+    for(char c: dynamic){
+      System.out.print(c + " ");
+    }
+
+    System.out.println("\n");
+    System.out.print("❌:");
+    for(char c: alreadyGuessed){
+      System.out.print(" " + c);
+    }
+
+    System.out.println("\n");
+    System.out.print("Lives: ");
+    for(int i = 0; i< lives; i++){
+      System.out.print(" ❤️ ");
+    }
+
+    System.out.println();
     if(!win){
-      askUser();
-    }
-  }
-
-  public static void convertCharArray(){
-    for(char c: chars){
-      lettersList.add(String.valueOf(c));
-    }
-  }
-
-  public static void printStuff(){
-    for(int i = 0; i<200; i++){
-      System.out.println("hi");
-    }
-  }
-  
-  public static void askUser() {
-    placeholder = "";
-    System.out.print("Letter: ");
-    currentLetter = scan.nextLine().charAt(0);
-    boolean match = false;
-
-    boolean duplicate = false;
-    for(char b: alreadyGuessed){
-      if(b == currentLetter || Math.abs(b - currentLetter) == 32){
-        duplicate = true;
+      char c = scan.next().charAt(0); 
+      boolean current = false;
+      for(char b: chars){
+        if(b == c){
+          current = true;
+          break;
+        }
       }
 
-      
-    for(char a: chars){
-      char str = a;
-      if((str == currentLetter || Math.abs(str - currentLetter) == 32) && !duplicate){
-        match = true;
-        // printStuff();
-        placeholder = "☑️☑️☑️☑️ CORRECT ☑️☑️☑️☑️";
-        yesChars[currentIndex] = str;
-        currentIndex++;
+      if(current){
+        dynamicUpdate(c);
+        win = checkWin();
         
-        fill();
-        break;
+        if(win){
+          winMessage();
+        }
+        else{
+          play();
+        }
       }
-    }
-    
-    }
+      else{
+        lives--;
+        alreadyGuessed.add(c);
+        play();
+      }
 
-    if(!match && !duplicate){
-      alreadyGuessed.add(0,currentLetter);
-      lives--;
     }
-
-    if(duplicate){
-      placeholder = "You already picked that, sorry!";
-    }
-
-    System.out.println(match);
-
-    if(!win){
-      play();
-    }
-    
   }
 
+  public static void winMessage(){
+    printStuff();
+    System.out.println("Congrats! You won! Would you like to play again?");
+  }
+
+  public static void dynamicUpdate(char c){
+    for(int i = 0; i<chars.length; i++){
+      if(chars[i] == c){
+        dynamic.set(i, c);
+      }
+    }
+  }
+    
   public static void pickWord() {
     word = words[(int) (Math.random() * numOfLines) + 1];
     chars = new char[word.length()];
     yesChars = new char[chars.length];
     word.getChars(0, word.length(), chars, 0);
-  }
-
-  public static void printData(){
-    System.out.println("chars: ");
+    
   }
 
   public static void readListWords() throws IOException {
